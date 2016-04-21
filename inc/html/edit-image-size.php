@@ -100,7 +100,7 @@ if ( $has_replacement ) {
 								$anchor_class = $is_current_size ? 'active' : '';
 								$anchor_href = yoimg_get_edit_image_url( $yoimg_image_id, $size_key ) . '&partial=1';
 								?>
-								<a href="<?php echo $anchor_href; ?>" class="media-menu-item yoimg-thickbox yoimg-thickbox-partial <?php echo $anchor_class; ?>"><?php _e(ucwords(str_replace('-', ' ', $size_key))); ?></a>
+								<a href="<?php echo $anchor_href; ?>" class="media-menu-item yoimg-thickbox yoimg-thickbox-partial <?php echo $anchor_class; ?>"><?php _e( apply_filters( 'yoimg_crop_size_label', ucwords(str_replace('-', ' ', $size_key)), $size_key)); ?></a>
 						<?php
 							}
 						}

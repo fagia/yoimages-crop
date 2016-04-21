@@ -59,5 +59,5 @@ function yoimg_get_image_sizes( $size = '' ) {
 			return false;
 		}
 	}
-	return $sizes;
+	return apply_filters( 'yoimg_crop_sizes', $sizes );
 }

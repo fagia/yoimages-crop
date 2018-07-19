@@ -27,10 +27,10 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-if (! defined ( 'ABSPATH' )) {
-	die ( 'No script kiddies please!' );
+if (! defined('ABSPATH')) {
+    die('No script kiddies please!');
 }
 
-define ( 'YOIMG_CROP_PLUGIN_PATH', dirname ( __FILE__ ) );
-require_once (YOIMG_CROP_PLUGIN_PATH . '/vendor/sirulli/yoimages-commons/inc/init.php');
-yoimg_register_module( 'yoimages-crop', YOIMG_CROP_PLUGIN_PATH, true );
+define('YOIMG_CROP_PLUGIN_PATH', dirname(__FILE__));
+require_once(YOIMG_CROP_PLUGIN_PATH . '/vendor/sirulli/yoimages-commons/inc/init.php');
+yoimg_register_module('yoimages-crop', YOIMG_CROP_PLUGIN_PATH, true);

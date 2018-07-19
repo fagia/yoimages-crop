@@ -33,6 +33,11 @@ function yoimg_crop_extend_settings($settings)
                                                     'callback' => 'yoimg_crop_settings_retina_cropping_is_active_callback'
                                             ),
                                             array(
+                                                'id' => 'sameratio_cropping_is_active',
+                                                'title' => __('Crop the same ratio at once', YOIMG_DOMAIN),
+                                                'callback' => 'yoimg_crop_settings_sameratio_cropping_is_active_callback'
+                                            ),
+                                            array(
                                                     'id' => 'cropping_sizes',
                                                     'title' => __('Cropping sizes', YOIMG_DOMAIN),
                                                     'callback' => 'yoimg_crop_settings_cropping_sizes_callback'
@@ -68,6 +73,12 @@ function yoimg_crop_settings_retina_cropping_is_active_callback()
     $crop_options = get_option('yoimg_crop_settings');
     printf('<input type="checkbox" id="retina_cropping_is_active" class="cropping_is_active-dep" name="yoimg_crop_settings[retina_cropping_is_active]" value="TRUE" %s />
                 <p class="description">' . __('Flag to enable (enable this option if you are using a retina plugin that uses @2x as file naming convention when creating retina images from source - e.g. <a href="https://wordpress.org/plugins/wp-retina-2x/" target="_blank">WP Retina 2x</a>)', YOIMG_DOMAIN) . '</p>', $crop_options ['retina_cropping_is_active'] ? 'checked="checked"' : (YOIMG_DEFAULT_CROP_RETINA_ENABLED && ! isset($crop_options ['retina_cropping_is_active']) ? 'checked="checked"' : ''));
+}
+function yoimg_crop_settings_sameratio_cropping_is_active_callback()
+{
+    $crop_options = get_option('yoimg_crop_settings');
+    printf('<input type="checkbox" id="sameratio_cropping_is_active" class="cropping_is_active-dep" name="yoimg_crop_settings[sameratio_cropping_is_active]" value="TRUE" %s />
+                <p class="description">' . __('Flag to enable (enable this option allows you to crop all images at once with the same ratio)', YOIMG_DOMAIN) . '</p>', $crop_options ['sameratio_cropping_is_active'] ? 'checked="checked"' : (YOIMG_DEFAULT_CROP_SAMERATIO_ENABLED && ! isset($crop_options ['sameratio_cropping_is_active']) ? 'checked="checked"' : ''));
 }
 function yoimg_crop_settings_cropping_sizes_callback()
 {
@@ -117,9 +128,9 @@ function yoimg_crop_settings_sanitize($input)
 {
     $new_input = array();
     if (isset($input ['cropping_is_active']) && ($input ['cropping_is_active'] === 'TRUE' || $input ['cropping_is_active'] === true)) {
-        $new_input ['cropping_is_active'] = true;
+        $new_input['cropping_is_active'] = true;
     } else {
-        $new_input ['cropping_is_active'] = false;
+        $new_input['cropping_is_active'] = false;
     }
     if (isset($input ['crop_qualities'])) {
         if (is_array($input ['crop_qualities'])) {
@@ -137,45 +148,50 @@ function yoimg_crop_settings_sanitize($input)
         }
         if (empty($crop_qualities_arr)) {
             add_settings_error('yoimg_crop_options_group', 'crop_qualities', __('Crop qualities value is not valid, using default:', YOIMG_DOMAIN) . ' ' . implode(',', unserialize(YOIMG_DEFAULT_CROP_QUALITIES)), 'error');
-            $new_input ['crop_qualities'] = unserialize(YOIMG_DEFAULT_CROP_QUALITIES);
+            $new_input['crop_qualities'] = unserialize(YOIMG_DEFAULT_CROP_QUALITIES);
         } else {
             $crop_qualities_arr = array_unique($crop_qualities_arr);
             rsort($crop_qualities_arr);
-            $new_input ['crop_qualities'] = $crop_qualities_arr;
+            $new_input['crop_qualities'] = $crop_qualities_arr;
         }
     } else {
-        $new_input ['crop_qualities'] = unserialize(YOIMG_DEFAULT_CROP_QUALITIES);
+        $new_input['crop_qualities'] = unserialize(YOIMG_DEFAULT_CROP_QUALITIES);
     }
     if (isset($input ['retina_cropping_is_active']) && ($input ['retina_cropping_is_active'] === 'TRUE' || $input ['retina_cropping_is_active'] === true)) {
-        $new_input ['retina_cropping_is_active'] = true;
+        $new_input['retina_cropping_is_active'] = true;
     } else {
-        $new_input ['retina_cropping_is_active'] = false;
+        $new_input['retina_cropping_is_active'] = false;
+    }
+    if (isset($input ['sameratio_cropping_is_active']) && ($input ['sameratio_cropping_is_active'] === 'TRUE' || $input ['sameratio_cropping_is_active'] === true)) {
+        $new_input['sameratio_cropping_is_active'] = true;
+    } else {
+        $new_input['sameratio_cropping_is_active'] = false;
     }
     if (isset($input ['cachebusting_is_active']) && ($input ['cachebusting_is_active'] === 'TRUE' || $input ['cachebusting_is_active'] === true)) {
-        $new_input ['cachebusting_is_active'] = true;
+        $new_input['cachebusting_is_active'] = true;
     } else {
-        $new_input ['cachebusting_is_active'] = false;
+        $new_input['cachebusting_is_active'] = false;
     }
 
     if (isset($input ['crop_sizes'])) {
         $there_is_one_manual_crop_active = false;
         foreach ($input['crop_sizes'] as $crop_size_id => $crop_size_option) {
             if (isset($crop_size_option ['active']) && ($crop_size_option ['active'] === 'TRUE' || $crop_size_option ['active'] === true)) {
-                $new_input ['crop_sizes'][$crop_size_id]['active'] = true;
+                $new_input['crop_sizes'][$crop_size_id]['active'] = true;
                 $there_is_one_manual_crop_active = true;
             } else {
-                $new_input ['crop_sizes'][$crop_size_id]['active'] = false;
+                $new_input['crop_sizes'][$crop_size_id]['active'] = false;
             }
             if (isset($crop_size_option ['name']) && ! empty($crop_size_option ['name'])) {
-                $new_input ['crop_sizes'][$crop_size_id]['name'] = $crop_size_option ['name'];
+                $new_input['crop_sizes'][$crop_size_id]['name'] = $crop_size_option ['name'];
             } else {
-                $new_input ['crop_sizes'][$crop_size_id]['name'] = $crop_size_id;
+                $new_input['crop_sizes'][$crop_size_id]['name'] = $crop_size_id;
             }
         }
         if (! $there_is_one_manual_crop_active) {
             add_settings_error('yoimg_crop_options_group', 'crop_sizes', __('There should be at least one manual crop activated. If you don\'t want any manual crop to be active, please disable the whole cropping using the first checkbox here below.', YOIMG_DOMAIN), 'error');
             foreach ($input['crop_sizes'] as $crop_size_id => $crop_size_option) {
-                $new_input ['crop_sizes'][$crop_size_id]['active'] = true;
+                $new_input['crop_sizes'][$crop_size_id]['active'] = true;
             }
         }
     }

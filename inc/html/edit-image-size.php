@@ -92,6 +92,7 @@ if ($has_replacement) {
                     <div class="media-router">
                         <?php
                         $sizes = yoimg_get_image_sizes();
+                        $sizes = yoimg_get_sameratio_sizes($sizes);
                         foreach ($sizes as $size_key => $size_value) {
                             if ($size_value['crop'] == 1 && $size_value['active']) {
                                 $is_current_size = $size_key === $yoimg_image_size;

@@ -12,7 +12,12 @@ function yoimg_is_retina_crop_enabled_for_size($size)
 
 function yoimg_get_cropped_image_filename($filename, $width, $height, $extension)
 {
-    return $filename . '-' . $width . 'x' . $height . '.' . $extension;
+    $crop_options = get_option('yoimg_crop_settings');
+    if (isset($crop_options['cachebusting_is_active']) && $crop_options['cachebusting_is_active']) {
+        return $filename . '-' . $width . 'x' . $height . '-crop-' . time() . '.' . $extension;
+    } else {
+        return $filename . '-' . $width . 'x' . $height . '.' . $extension;
+    }
 }
 
 function yoimg_get_edit_image_url($id, $size)
@@ -47,11 +52,11 @@ function yoimg_get_image_sizes($size = '')
                 'medium',
                 'large'
         ))) {
-            $sizes [$_size] ['width'] = get_option($_size . '_size_w');
-            $sizes [$_size] ['height'] = get_option($_size . '_size_h');
-            $sizes [$_size] ['crop'] = ( bool ) get_option($_size . '_crop');
+            $sizes[$_size] ['width'] = get_option($_size . '_size_w');
+            $sizes[$_size] ['height'] = get_option($_size . '_size_h');
+            $sizes[$_size] ['crop'] = ( bool ) get_option($_size . '_crop');
         } elseif (isset($_wp_additional_image_sizes [$_size])) {
-            $sizes [$_size] = array(
+            $sizes[$_size] = array(
                     'width' => $_wp_additional_image_sizes [$_size] ['width'],
                     'height' => $_wp_additional_image_sizes [$_size] ['height'],
                     'crop' => $_wp_additional_image_sizes [$_size] ['crop']
@@ -77,12 +82,48 @@ function yoimg_get_image_sizes($size = '')
         }
     }
 
-    if ($size) {
-        if (isset($sizes [$size])) {
-            return $sizes [$size];
+    if (!empty($size)) {
+        if (isset($sizes[$size])) {
+            return $sizes[$size];
         } else {
             return false;
         }
     }
+    return $sizes;
+}
+
+function yoimg_get_sameratio_sizes($sizes, $size = null)
+{
+    if (YOIMG_CROP_SAMERATIO_ENABLED) {
+        ksort($sizes);
+        $ratio_sizes = array();
+        foreach ($sizes as $size_key => $size_value) {
+            if (!isset($size_value['active']) || !$size_value['active'] || !isset($size_value['crop']) || !$size_value['crop']) {
+                unset($sizes[$size_key]);
+                continue;
+            }
+            if ($size_value['height'] == 0 || $size_value['width'] == 0) {
+                $ratio = 'free';
+            } else {
+                $ratio = ceil(($size_value['width'] / $size_value['height']) * 100);
+            }
+
+            if (!isset($ratio_sizes[$ratio])) {
+                $ratio_sizes[$ratio] = $size_key;
+            } else {
+                $sizes[$ratio_sizes[$ratio]]['sameratio'][$size_key] = $sizes[$size_key];
+                unset($sizes[$size_key]);
+            }
+        }
+    }
+
+    if (!empty($size)) {
+        if (isset($sizes[$size])) {
+            return $sizes[$size];
+        } else {
+            return false;
+        }
+    }
+
     return $sizes;
 }

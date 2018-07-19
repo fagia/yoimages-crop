@@ -17,8 +17,10 @@ if (is_admin() || php_sapi_name() == 'cli') {
     define('YOIMG_CROP_ENABLED', $yoimg_crop_settings && isset($yoimg_crop_settings ['cropping_is_active']) ? $yoimg_crop_settings ['cropping_is_active'] : YOIMG_DEFAULT_CROP_ENABLED);
     define('YOIMG_EDIT_IMAGE_ACTION', 'yoimg-edit-thumbnails');
     define('YOIMG_DEFAULT_CROP_RETINA_ENABLED', false);
+    define('YOIMG_DEFAULT_CROP_SAMERATIO_ENABLED', false);
     define('YOIMG_DEFAULT_CACHEBUSTER_ENABLED', false);
     define('YOIMG_CROP_RETINA_ENABLED', $yoimg_crop_settings && isset($yoimg_crop_settings ['retina_cropping_is_active']) ? $yoimg_crop_settings ['retina_cropping_is_active'] : YOIMG_DEFAULT_CROP_RETINA_ENABLED);
+    define('YOIMG_CROP_SAMERATIO_ENABLED', $yoimg_crop_settings && isset($yoimg_crop_settings ['sameratio_cropping_is_active']) ? $yoimg_crop_settings ['sameratio_cropping_is_active'] : YOIMG_DEFAULT_CROP_SAMERATIO_ENABLED);
     define('YOIMG_CACHEBUSTER_ENABLED', $yoimg_crop_settings && isset($yoimg_crop_settings ['cachebuster_is_active']) ? $yoimg_crop_settings ['cachebuster_is_active'] : YOIMG_DEFAULT_CACHEBUSTER_ENABLED);
     define('YOIMG_CROP_URL', plugins_url(plugin_basename(YOIMG_CROP_PATH)));
 

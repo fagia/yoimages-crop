@@ -69,7 +69,7 @@ function yoimg_crop_load_styles_and_scripts($hook)
         wp_enqueue_script('yoimg-cropper-js', YOIMG_CROP_URL . '/js/cropper/cropper.min.js', array(
                 'jquery'
         ), false, true);
-        wp_enqueue_script('yoimg-cropping-js', YOIMG_CROP_URL . '/js/yoimg-cropping.js', array(
+        wp_enqueue_script('yoimg-cropping-js', YOIMG_CROP_URL . '/js/yoimg-cropping.min.js', array(
                 'yoimg-cropper-js'
         ), false, true);
     }

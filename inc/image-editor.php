@@ -36,8 +36,8 @@ function yoimg_crop_this_image($args)
         $req_y                     = esc_html($args[ 'y' ]);
         $req_quality               = esc_html($args[ 'quality' ]);
         $yoimg_retina_crop_enabled = yoimg_is_retina_crop_enabled_for_size($req_size);
-        $attachment_metadata = maybe_unserialize(wp_get_attachment_metadata($req_post));
-        $pre_crop_filename = $attachment_metadata['sizes'][$req_size]['file'];
+        $attachment_metadata       = maybe_unserialize(wp_get_attachment_metadata($req_post));
+        $pre_crop_filename         = $attachment_metadata['sizes'][$req_size]['file'];
 
         // Get replacement path if exist
         if (isset($attachment_metadata['yoimg_attachment_metadata']['crop'][$req_size]['replacement'])) {
@@ -47,29 +47,21 @@ function yoimg_crop_this_image($args)
         }
         $has_replacement = !empty($replacement) && get_post($replacement);
         if ($has_replacement) {
-            $replacement_path = _load_image_to_edit_path($replacement);
-            $img_editor = wp_get_image_editor($replacement_path);
+            $img_path = _load_image_to_edit_path($replacement);
             $full_image_attributes = wp_get_attachment_image_src($replacement, 'full');
         } else {
             $img_path = _load_image_to_edit_path($req_post);
-            $img_editor = wp_get_image_editor($img_path);
             $full_image_attributes = wp_get_attachment_image_src($req_post, 'full');
-        }
-        if (is_wp_error($img_editor)) {
-            yoimg_log($img_editor);
-            return false;
         }
 
         // Vars
         $cropped_image_sizes = yoimg_get_image_sizes($req_size);
-        $is_crop_smaller = $full_image_attributes[1] < $cropped_image_sizes['width'] || $full_image_attributes[2] < $cropped_image_sizes['height'];
         $crop_width = $cropped_image_sizes['width'];
         $crop_height = $cropped_image_sizes['height'];
-        $img_path_parts = pathinfo($img_path);
+        $is_crop_smaller = $full_image_attributes[1] < $crop_width || $full_image_attributes[2] < $crop_height;
+        $is_crop_retina_smaller = $full_image_attributes[1] < $crop_width * 2 || $full_image_attributes[2] < $crop_height * 2;
 
         $vars = [
-            'img_path_parts' => $img_path_parts,
-            'img_editor' => $img_editor,
             'req_size' => $req_size,
             'req_x' => $req_x,
             'req_y' => $req_y,
@@ -80,17 +72,13 @@ function yoimg_crop_this_image($args)
             'crop_width' => $crop_width,
             'crop_height' => $crop_height,
             'attachment_metadata' => $attachment_metadata,
+            'replacement' => $replacement,
             'has_replacement' => $has_replacement,
+            'img_path' => $img_path,
+            'yoimg_retina_crop_enabled' => ($yoimg_retina_crop_enabled && !$is_crop_retina_smaller) ? true : false
         ];
 
         $cropped_image_filename = yoimg_save_this_image($vars);
-
-        // Prepare RETURN
-        $return = [
-            'previous_filename' => $pre_crop_filename,
-            'filename' => $cropped_image_filename,
-            'smaller'  => $is_crop_smaller,
-        ];
 
         // Save all images with the same ratio
         if (YOIMG_CROP_SAMERATIO_ENABLED) {
@@ -98,7 +86,6 @@ function yoimg_crop_this_image($args)
             $sameratio_sizes = yoimg_get_sameratio_sizes($cropped_sizes, $req_size);
             if (!empty($sameratio_sizes['sameratio'])) {
                 foreach ($sameratio_sizes['sameratio'] as $sameratio_key => $sameratio_val) {
-                    $vars['img_editor'] = wp_get_image_editor($has_replacement ? $replacement_path : $img_path);
                     $vars['req_size'] = $sameratio_key;
                     $vars['crop_width'] = $sameratio_val['width'];
                     $vars['crop_height'] = $sameratio_val['height'];
@@ -108,31 +95,13 @@ function yoimg_crop_this_image($args)
             }
         }
 
-        if ($yoimg_retina_crop_enabled) {
-            // Generate Retina Thumbnail
-            $img_editor_retina = wp_get_image_editor($has_replacement ? $replacement_path : $img_path);
-            if (is_wp_error($img_editor_retina)) {
-                yoimg_log($img_editor_retina);
-                return false;
-            }
-            $crop_width_retina = $crop_width * 2;
-            $crop_height_retina = $crop_height * 2;
-            $is_crop_retina_smaller = $full_image_attributes[1] < $crop_width_retina || $full_image_attributes[2] < $crop_height_retina;
-            if (!$is_crop_retina_smaller) {
-                $img_editor_retina->crop($req_x, $req_y, $req_width, $req_height, $crop_width_retina, $crop_height_retina, false);
-                $img_editor_retina->set_quality($req_quality);
-                $img_retina_path_parts = pathinfo($cropped_image_filename);
-                $cropped_image_retina_filename = $img_retina_path_parts['filename'] . '@2x.' . $img_retina_path_parts['extension'];
-                $img_editor_retina->save($img_path_parts['dirname'] . '/' . $cropped_image_retina_filename);
-            }
-
-            $return['retina_filename'] = $cropped_image_retina_filename;
-            $return['retina_smaller'] = $is_crop_retina_smaller;
-        }
-
-        $return['attachment_metadata'] = $attachment_metadata;
-
-        return $return;
+        return [
+            'previous_filename' => $pre_crop_filename,
+            'filename' => $cropped_image_filename,
+            'smaller'  => $is_crop_smaller,
+            'retina_smaller'  => $is_crop_retina_smaller,
+            'attachment_metadata'  => $attachment_metadata,
+        ];
     }
 
     return false;
@@ -141,15 +110,29 @@ function yoimg_crop_this_image($args)
 function yoimg_save_this_image($vars)
 {
     extract($vars);
+    $img_path_parts = pathinfo($img_path);
 
-    // Set name
+    // Retina Save
+    if ($yoimg_retina_crop_enabled) {
+        $cropped_retina_image_filename = yoimg_get_cropped_image_filename($img_path_parts['filename'], $crop_width, $crop_height, $img_path_parts['extension'], true);
+        $cropped_retina_image_path = $img_path_parts['dirname'] . '/' . $cropped_retina_image_filename;
+
+        $img_editor = wp_get_image_editor($img_path);
+        $img_editor->crop($req_x, $req_y, $req_width, $req_height, $crop_width * 2, $crop_height * 2, false);
+        $img_editor->set_quality($req_quality);
+        $img_editor->save($cropped_retina_image_path);
+        unset($img_editor);
+    }
+
+    // Orginal Save
     $cropped_image_filename = yoimg_get_cropped_image_filename($img_path_parts['filename'], $crop_width, $crop_height, $img_path_parts['extension']);
     $cropped_image_path = $img_path_parts['dirname'] . '/' . $cropped_image_filename;
 
-    // Save Image
+    $img_editor = wp_get_image_editor($img_path);
     $img_editor->crop($req_x, $req_y, $req_width, $req_height, $crop_width, $crop_height, false);
     $img_editor->set_quality($req_quality);
     $img_editor->save($cropped_image_path);
+    unset($img_editor);
 
     // Updated attachment_metadata
     if (empty($attachment_metadata['sizes'][$req_size]) || empty($attachment_metadata['sizes'][$req_size]['file'])) {

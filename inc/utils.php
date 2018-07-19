@@ -10,13 +10,13 @@ function yoimg_is_retina_crop_enabled_for_size($size)
     return YOIMG_CROP_RETINA_ENABLED;
 }
 
-function yoimg_get_cropped_image_filename($filename, $width, $height, $extension)
+function yoimg_get_cropped_image_filename($filename, $width, $height, $extension, $retina = false)
 {
     $crop_options = get_option('yoimg_crop_settings');
     if (isset($crop_options['cachebusting_is_active']) && $crop_options['cachebusting_is_active']) {
-        return $filename . '-' . $width . 'x' . $height . '-crop-' . time() . '.' . $extension;
+        return $filename . '-' . $width . 'x' . $height . '-crop-' . time() . ($retina ? '@2x': '') . '.' . $extension;
     } else {
-        return $filename . '-' . $width . 'x' . $height . '.' . $extension;
+        return $filename . '-' . $width . 'x' . $height . ($retina ? '@2x' : '') . '.' . $extension;
     }
 }
 

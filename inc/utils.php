@@ -95,23 +95,34 @@ function yoimg_get_image_sizes($size = '')
 function yoimg_get_sameratio_sizes($sizes, $size = null)
 {
     if (YOIMG_CROP_SAMERATIO_ENABLED) {
-        ksort($sizes);
         $ratio_sizes = array();
         foreach ($sizes as $size_key => $size_value) {
+            // Delete unactive size
             if (!isset($size_value['active']) || !$size_value['active'] || !isset($size_value['crop']) || !$size_value['crop']) {
                 unset($sizes[$size_key]);
                 continue;
             }
+
             if ($size_value['height'] == 0 || $size_value['width'] == 0) {
                 $ratio = 'free';
             } else {
                 $ratio = ceil(($size_value['width'] / $size_value['height']) * 100);
             }
 
-            if (!isset($ratio_sizes[$ratio])) {
-                $ratio_sizes[$ratio] = $size_key;
+            if ($size_value['width'] >= $size_value['height']) {
+                $max_size = $size_value['width'];
             } else {
-                $sizes[$ratio_sizes[$ratio]]['sameratio'][$size_key] = $sizes[$size_key];
+                $max_size = $size_value['height'];
+            }
+            $ratio_sizes[$ratio][$max_size] = $size_key;
+            krsort($ratio_sizes[$ratio]);
+        }
+
+        // Delete all images with the same ratio
+        foreach ($ratio_sizes as $ratio => $size_keys) {
+            $primary_size = array_shift($size_keys);
+            foreach ($size_keys as $size_key) {
+                $sizes[$primary_size]['sameratio'][$size_key] = $sizes[$size_key];
                 unset($sizes[$size_key]);
             }
         }

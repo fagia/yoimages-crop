@@ -95,13 +95,18 @@ function yoimg_crop_this_image($args)
             }
         }
 
-        return [
+        $return = [
             'previous_filename' => $pre_crop_filename,
             'filename' => $cropped_image_filename,
             'smaller'  => $is_crop_smaller,
-            'retina_smaller'  => $is_crop_retina_smaller,
             'attachment_metadata'  => $attachment_metadata,
         ];
+
+        if ($yoimg_retina_crop_enabled) {
+            $return['retina_smaller'] = $is_crop_retina_smaller;
+        }
+
+        return $return;
     }
 
     return false;

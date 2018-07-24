@@ -72,6 +72,7 @@ function yoimg_crop_this_image($args)
             'crop_width' => $crop_width,
             'crop_height' => $crop_height,
             'attachment_metadata' => $attachment_metadata,
+            'pre_crop_filename' => $pre_crop_filename,
             'replacement' => $replacement,
             'has_replacement' => $has_replacement,
             'img_path' => $img_path,
@@ -151,9 +152,7 @@ function yoimg_save_this_image($vars)
         'height' => $crop_height
     );
 
-    if (empty($attachment_metadata['yoimg_attachment_metadata']['crop'])) {
-        $attachment_metadata['yoimg_attachment_metadata']['crop'] = array();
-    }
+    // YoImages Metadata
     $attachment_metadata['yoimg_attachment_metadata']['crop'][$req_size] = array(
         'x' => $req_x,
         'y' => $req_y,
@@ -164,6 +163,13 @@ function yoimg_save_this_image($vars)
     if ($has_replacement) {
         $attachment_metadata['yoimg_attachment_metadata']['crop'][$req_size]['replacement'] = $replacement;
     }
+
+    // Save History for cleaning
+    $attachment_metadata['yoimg_attachment_metadata']['history'][] = $img_path_parts['dirname'] . '/' . $cropped_image_filename;
+    if (!empty($pre_crop_filename)) {
+        $attachment_metadata['yoimg_attachment_metadata']['history'][] = $img_path_parts['dirname'] . '/' . $pre_crop_filename;
+    }
+
     wp_update_attachment_metadata($req_post, $attachment_metadata);
 
     return $cropped_image_filename;

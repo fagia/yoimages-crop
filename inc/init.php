@@ -75,3 +75,17 @@ function yoimg_crop_load_styles_and_scripts($hook)
     }
 }
 add_action('admin_enqueue_scripts', 'yoimg_crop_load_styles_and_scripts');
+
+// define the delete_attachment callback
+function action_delete_attachment($post_id)
+{
+    $attachment_metadata = maybe_unserialize(wp_get_attachment_metadata($post_id));
+    if (!empty($attachment_metadata) && !empty($attachment_metadata['yoimg_attachment_metadata']['history'])) {
+        foreach ($attachment_metadata['yoimg_attachment_metadata']['history'] as $file) {
+            wp_delete_file($file);
+        }
+    }
+};
+
+// add the action
+add_action('delete_attachment', 'action_delete_attachment', 10, 1);

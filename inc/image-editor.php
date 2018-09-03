@@ -141,15 +141,11 @@ function yoimg_save_this_image($vars)
     unset($img_editor);
 
     // Updated attachment_metadata
-    if (empty($attachment_metadata['sizes'][$req_size]) || empty($attachment_metadata['sizes'][$req_size]['file'])) {
-        $attachment_metadata['sizes'][$req_size] = array(
-            'mime-type' => $attachment_metadata['sizes']['thumbnail']['mime-type']
-        );
-    }
     $attachment_metadata['sizes'][$req_size] = array(
         'file' => $cropped_image_filename,
         'width' => $crop_width,
-        'height' => $crop_height
+        'height' => $crop_height,
+        'mime-type' => $attachment_metadata['sizes']['thumbnail']['mime-type']
     );
 
     // YoImages Metadata

@@ -1,10 +1,8 @@
 {
     "name": "raccourci/yoimages-crop",
-    "repositories": [{
-        "type": "vcs",
-        "url": "https://github.com/sirulli/yoimages-commons"
-    }],
+    "license": "GPL-2.0",
+    "description": "",
     "require": {
-        "sirulli/yoimages-commons": "master-dev"
+        "raccourci/yoimages-commons": "0.1.9"
     }
 }

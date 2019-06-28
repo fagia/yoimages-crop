@@ -1,5 +1,5 @@
 {
-    "name": "sirulli/yoimages-crop",
+    "name": "raccourci/yoimages-crop",
     "repositories": [{
         "type": "vcs",
         "url": "https://github.com/sirulli/yoimages-commons"
